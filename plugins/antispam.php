@@ -71,14 +71,11 @@ $this->bindMsg(function($event){
 	}
 
 	// check exempts
-	foreach($this->config->antispam['exempts'] as $exempt)
+	foreach($this->config->antispam['exempts'] as $mask)
 	{
-		foreach($exempt as $mask)
+		if(fnmatch(strtolower($mask), strtolower($event->user->mask)))
 		{
-			if(fnmatch(strtolower($mask), strtolower($event->user->mask)))
-			{
-				return;
-			}
+			return;
 		}
 	}
 
