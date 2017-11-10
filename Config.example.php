@@ -19,4 +19,8 @@ class Config
 		"realname"  => "https://github.com/xnite/p7bot",
 		"trigger"   => "!"
 	);
+
+	public $admins = array(
+		"Nickname"     => array("*!*@Nickname/Registered/Member", "*!*@*.example.com")
+	);
 }

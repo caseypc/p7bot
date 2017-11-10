@@ -5,6 +5,7 @@ class Start
 	private $socket;
 	private $command_binds = array();
 	private $privmsg_binds = array();
+	private $nicklist = array();
 	public function __construct()
 	{
 		require_once("Config.php");
@@ -45,9 +46,11 @@ class Start
 				$this->send("PONG".$m[1]);
 			}
 
-			//End of /MOTD
-
-
+			// handle /names
+			if(preg_match("/:(.*?) 353 (.*?) (.*?) (.*?) :(.*?)/i", $data, $m))
+			{
+				$this->nicklist[$m[4]]=$m[5];
+			}
 			// Handle PRIVMSG
 			if(preg_match("/^:(.*?)!(.*?)@(.*?) PRIVMSG (.*?) :(.*?)$/i", $data, $m))
 			{
@@ -56,6 +59,7 @@ class Start
 				$eventObject->user->nickname = $m[1];
 				$eventObject->user->username = $m[2];
 				$eventObject->user->hostname = $m[3];
+				$eventObject->user->mask = $m[1]."!".$m[2]."@".$m[3];
 				$eventObject->target = $m[4];
 				$eventObject->message = $m[5];
 				$args = explode(" ", $m[5]);
@@ -99,6 +103,21 @@ class Start
 	public function bindMsg($callback)
 	{
 		array_push($this->privmsg_binds, $callback);
+	}
+
+	public function checkAdmin($usermask)
+	{
+		foreach($this->config->admins as $admin)
+		{
+			foreach($admin as $mask)
+			{
+				if(fnmatch(strtolower($mask), strtolower($usermask)))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }
 $Bot = new Start();

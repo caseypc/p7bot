@@ -9,7 +9,12 @@
 $this->messageBuffer = array();
 $this->userScores = array();
 
-$this->bindCmd("ss", function($event){
+$this->bindCmd("spam.score", function($event){
+	if(!$this->checkAdmin($event->user->mask))
+	{
+		$this->send("PRIVMSG ".$event->target." :".$event->user->nickname.": You do not have permission to use this command!");
+		return;
+	}
 	if(isset($event->arguments[0]))
 	{
 		$who = $event->arguments[0];
@@ -23,7 +28,34 @@ $this->bindCmd("ss", function($event){
 		$this->send("PRIVMSG ".$event->target." :".$who." has not been scored yet.");
 		return;
 	}
-	$this->send("PRIVMSG ".$event->target." :Spam score for ".$who." is ".$this->userScores[$who]);
+	$this->send("PRIVMSG ".$event->target." :Spam score for ".$who." is ".$this->userScores[$who]."/100");
+});
+
+$this->bindCmd("spam.setscore", function($event){
+	if(!$this->checkAdmin($event->user->mask))
+	{
+		$this->send("PRIVMSG ".$event->target." :".$event->user->nickname.": You do not have permission to use this command!");
+		return;
+	}
+
+	if(isset($event->arguments[0]))
+	{
+		$who = $event->arguments[0];
+	} else {
+		$this->send("PRIVMSG ".$event->target." :".$event->user->nickname.": \002USAGE:\002 ".$this->config->bot['trigger']."spam.setscore <nickname> <score>");
+		return;
+	}
+
+	if(isset($event->arguments[1]))
+	{
+		$value = $event->arguments[1];
+	} else {
+		$this->send("PRIVMSG ".$event->target." :".$event->user->nickname.": \002USAGE:\002 ".$this->config->bot['trigger']."spam.setscore <nickname> <score>");
+		return;
+	}
+
+	$this->userScores[$who]=$value;
+	$this->send("PRIVMSG ".$event->target." :Spam score for ".$who." is now ".$this->userScores[$who]);
 });
 
 $this->bindMsg(function($event){
