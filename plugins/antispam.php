@@ -1,6 +1,6 @@
 <?php
 /*
- * Anti-Spam plugin for FactoryBot
+ * Anti-Spam plugin for p7bot
  * Scores users based on various qualities of their messages.
  * Commands:
  * ss   Retrieves the score of the given user. If no user is given retrieves score for requesting user.
