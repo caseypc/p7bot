@@ -94,12 +94,13 @@ $this->bindMsg(function($event){
 	$length = strlen($event->message);
 	$percent_caps = (100/$length)*$caps;
 	echo $event->user->nickname." / ".$caps." / ".$length." / ".$percent_caps."%\n";
-	if($length >= 10 && $percent_caps >= 90)
+
+	foreach($this->config->antispam['caps_scoring'] as $pcaps => $cscore)
 	{
-		$this->userScores[$event->user->nickname]=$this->userScores[$event->user->nickname]+100;
-	}elseif($length >= 10 && $percent_caps >= 50)
-	{
-		$this->userScores[$event->user->nickname]=$this->userScores[$event->user->nickname]+25;
+		if ($length >= $this->config->antispam['caps_min_length'] && $percent_caps >= $pcaps)
+		{
+			$this->userScores[$event->user->nickname]=$this->userScores[$event->user->nickname]+$cscore;
+		}
 	}
 
 	if(substr($event->message, 0, 1) != $this->config->bot['trigger'])

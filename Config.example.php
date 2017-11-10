@@ -23,4 +23,19 @@ class Config
 	public $admins = array(
 		"Nickname"     => array("*!*@Nickname/Registered/Member", "*!*@*.example.com")
 	);
+
+	public $antispam = array(
+		/* CAPS DETECTION */
+		"caps_min_length"    => 10,
+		"caps_scoring" => array(
+			80 => 200, // if message is 90+% CAPS then add 200 to score (immediate kick+ban)
+			50 => 25,
+			25 => 10
+		),
+		/* exempts */
+		"exempts"   => array(
+			"*!*@Nickname/Registered/Member",
+			"*!*@*.example.com"
+		)
+	);
 }
