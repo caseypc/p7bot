@@ -28,7 +28,7 @@ $this->bindCmd("spam.score", function($event){
 		$this->send("PRIVMSG ".$event->target." :".$who." has not been scored yet.");
 		return;
 	}
-	$this->send("PRIVMSG ".$event->target." :Spam score for ".$who." is ".$this->userScores[$who]."/100");
+	$this->send("PRIVMSG ".$event->target." :Spam score for ".$who." is ".$this->userScores[$who]."%");
 });
 
 $this->bindCmd("spam.setscore", function($event){
@@ -55,14 +55,43 @@ $this->bindCmd("spam.setscore", function($event){
 	}
 
 	$this->userScores[$who]=$value;
-	$this->send("PRIVMSG ".$event->target." :Spam score for ".$who." is now ".$this->userScores[$who]);
+	$this->send("PRIVMSG ".$event->target." :Spam score for ".$who." is now ".$this->userScores[$who]."%");
 });
 
 $this->bindMsg(function($event){
-	if($this->userScores[$event->user->nickname] <= -1)
+	if(!isset($this->userScores[$event->user->nickname]) || $this->userScores[$event->user->nickname] <= -1)
 	{
 		$this->userScores[$event->user->nickname]=0;
 	}
+
+	// exempt admins from spam checks.
+	if($this->checkAdmin($event->user->mask))
+	{
+		return;
+	}
+
+	// check exempts
+	foreach($this->config->antispam['exempts'] as $exempt)
+	{
+		foreach($exempt as $mask)
+		{
+			if(fnmatch(strtolower($mask), strtolower($event->user->mask)))
+			{
+				return;
+			}
+		}
+	}
+
+	/*
+	 * Check similarity between message and nick list to determine if message may be a mass-highlight.
+	 * The method here will most likely be changed later on.
+	 */
+	similar_text($event->message, $this->nicklist[$event->target], $highlightPercent);
+	if($highlightPercent >= 50)
+	{
+		$this->userScores[$event->user->nickname]=110;
+	}
+
 	$caps = preg_match_all("/([A-Z0-9])/", str_replace(" ", "", $event->message), $m);
 	//$caps = count($m);
 	$length = strlen($event->message);
@@ -105,5 +134,4 @@ $this->bindMsg(function($event){
 		$this->send("NOTICE ".$event->user->nickname." :Your spam score is getting dangerously high, please cool it down.");
 	}
 	$this->messageBuffer[$event->user->nickname]=$event->message;
-	//echo "[PROTECT]\tUser=".$event->user->nickname.";Score=".$this->userScores[$event->user->nickname].";Similarity=".$percent.";\n";
 });
