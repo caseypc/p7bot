@@ -3,11 +3,41 @@
  * Anti-Spam plugin for p7bot
  * Scores users based on various qualities of their messages.
  * Commands:
- * ss   Retrieves the score of the given user. If no user is given retrieves score for requesting user.
- *      Example: `!ss Nickname`
+ * spam.score       Retrieves the score of the given user. If no user is given retrieves score for requesting user.
+ *                  Example: `!spam.score Nickname`
+ * spam.setScore    Sets the score of the given user to the given score
+ *                  Example: `!spam.setScore Nickname 0`
  */
 $this->messageBuffer = array();
 $this->userScores = array();
+try
+{
+	$this->universalSpamFilters = json_decode(file_get_contents($this->config->antispam['ufilter']));
+	foreach($this->universalSpamFilters as $filter)
+	{
+		echo "Loaded Filter: \"".$filter->string."\";".$filter->score.";\n";
+	}
+} catch(Exception $e)
+{
+	echo "Could not get spam definitions!\n";
+	$this->universalSpamFilters = null;
+}
+
+$this->bindPing(function(){
+	if($this->config->antispam['ufilter'] == null) { return; }
+	try
+	{
+		$this->universalSpamFilters = json_decode(file_get_contents($this->config->antispam['ufilter']));
+		foreach($this->universalSpamFilters as $filter)
+		{
+			echo "Loaded Filter: \"".$filter->string."\";".$filter->score.";\n";
+		}
+	} catch(Exception $e)
+	{
+		echo "Could not get spam definitions!\n";
+		$this->universalSpamFilters = null;
+	}
+});
 
 $this->bindCmd("spam.score", function($event){
 	if(!$this->checkAdmin($event->user->mask))
@@ -76,6 +106,28 @@ $this->bindMsg(function($event){
 		if(fnmatch(strtolower($mask), strtolower($event->user->mask)))
 		{
 			return;
+		}
+	}
+
+	/*
+	 * Check spam definitions from configuration file, as well as universal definitions from given URL.
+	 */
+	if(is_array($this->universalSpamFilters))
+	{
+		foreach($this->universalSpamFilters as $filter)
+		{
+			if(preg_match($filter->string, $event->message))
+			{
+				$this->userScores[$event->user->nickname]=$this->userScores[$event->user->nickname]+$filter->score;
+			}
+		}
+	}
+
+	foreach($this->config->antispam['filters'] as $filter)
+	{
+		if(preg_match($filter['string'], $event->message))
+		{
+			$this->userScores[$event->user->nickname]=$this->userScores[$event->user->nickname]+$filter['score'];
 		}
 	}
 

@@ -5,6 +5,7 @@ class Start
 	private $socket;
 	private $command_binds = array();
 	private $privmsg_binds = array();
+	private $ping_binds = array();
 	private $nicklist = array();
 	public function __construct()
 	{
@@ -44,6 +45,10 @@ class Start
 			if(preg_match("/^PING(.*?)$/i", $data, $m))
 			{
 				$this->send("PONG".$m[1]);
+				foreach($this->ping_binds as $callback)
+				{
+					$callback();
+				}
 			}
 
 			// handle /names
@@ -94,6 +99,11 @@ class Start
 			return false;
 		}
 		return true;
+	}
+
+	public function bindPing($callback)
+	{
+		array_push($this->ping_binds, $callback);
 	}
 
 	public function bindCmd($command, $callback)

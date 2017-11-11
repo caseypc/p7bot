@@ -1,15 +1,11 @@
 <?php
-/*
- * Rename this file to Config.php once you have finished tweaking it.
- */
 class Config
 {
 	public $network = array(
 		"hostname"  => "irc.buddy.im",
 		"port"      => 6667,
 		"channels"  => array(
-			"#lobby",
-			"#help"
+			"#lobby"
 		)
 	);
 
@@ -21,27 +17,39 @@ class Config
 	);
 
 	public $admins = array(
-		"Nickname"     => array("*!*@Nickname/Registered/Member", "*!*@*.example.com")
+		"Nickname"     => array(
+			"*!*@*.example.com",
+			"*!*@example.com"
+		)
 	);
 
 	public $antispam = array(
 		"warn_score"    => 75,
 		"warning_msg"   => "Your spam score is getting dangerously high. Please cool it down.",
+		/* FILTERS */
+		"ufilter" => "example-filters.json", // You can define a URL here to the definitions file. Please see the example-filters.json file to learn how to format your definitions
+		"filters" => array(
+			array(
+				"string"    => "/^saying this exact string will bring down the ban hammer$/i",
+				"score"     => 110
+			)
+		),
+
 		/* CAPS DETECTION */
 		"caps_min_length"    => 10,
 		"caps_scoring" => array(
-			80 => 200, // if message is 80+% CAPS then add 200 to score (immediate kick+ban)
-			50 => 25,
-			25 => 10
+			80 => 110, // if message is 80+% CAPS then add 110 to score (immediate kick+ban)
+			50 => 35,
+			25 => 20
 		),
 		/* SIMILARITY */
-		"similarity_percent" => 50,
-		"similarity_add_points" => 30,
-		"similarity_rem_points" => 10,
+		"similarity_percent" => 30,
+		"similarity_add_points" => 40,
+		"similarity_rem_points" => 20,
 		/* EXEMPTS */
 		"exempts"   => array(
-			"*!*@Nickname/Registered/Member",
-			"*!*@*.example.com"
+			"*!*@*.example.com",
+			"*!*@example.com"
 		)
 	);
 }
