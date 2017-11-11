@@ -113,12 +113,12 @@ $this->bindMsg(function($event){
 		if (isset($this->messageBuffer[$event->user->nickname]))
 		{
 			similar_text($this->messageBuffer[$event->user->nickname], $event->message, $percent);
-			if ($percent >= 50)
+			if ($percent >= $this->config->antispam['similarity_percent'])
 			{
-				$this->userScores[$event->user->nickname] = $this->userScores[$event->user->nickname] + 25;
+				$this->userScores[$event->user->nickname] = $this->userScores[$event->user->nickname] + $this->config->antispam['similarity_add_points'];
 			} else
 			{
-				$this->userScores[$event->user->nickname] = $this->userScores[$event->user->nickname] - 10;
+				$this->userScores[$event->user->nickname] = $this->userScores[$event->user->nickname] - $this->config->antispam['similarity_rem_points'];;
 			}
 		}
 	}
@@ -127,9 +127,14 @@ $this->bindMsg(function($event){
 		$this->send("MODE ".$event->target." +b *!*@".$event->user->hostname);
 		$this->send("KICK ".$event->target." ".$event->user->nickname." :You have been banned from ".$event->target." for triggering spam detection.");
 		$this->userScores[$event->user->nickname]=0;
-	} elseif($this->userScores[$event->user->nickname] >= 70)
+	} elseif($this->userScores[$event->user->nickname] >= $this->config->antispam['warn_score'])
 	{
-		$this->send("NOTICE ".$event->user->nickname." :Your spam score is getting dangerously high, please cool it down.");
+		$this->send("NOTICE ".$event->user->nickname." :".$this->config->antispam['warn_msg']);
 	}
 	$this->messageBuffer[$event->user->nickname]=$event->message;
+
+	if(!isset($this->userScores[$event->user->nickname]) || $this->userScores[$event->user->nickname] <= -1)
+	{
+		$this->userScores[$event->user->nickname]=0;
+	}
 });
