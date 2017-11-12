@@ -3,6 +3,8 @@ p7bot is a bot that I've written specifically for PHP 7.x.
 
 It contains basic plugins such as ping, fml, urban dictionary and spam protection. It can be extended by plugins with little effort.
 
+**PULL REQUESTS ARE WELCOME!!**
+
 # Plugin Commands
 ## Ping
 **!ping** Returns pong
