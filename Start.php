@@ -7,6 +7,7 @@ class Start
 	private $privmsg_binds = array();
 	private $ping_binds = array();
 	private $nicklist = array();
+	private $running = true;
 	public function __construct()
 	{
 		require_once("Config.php");
@@ -23,68 +24,75 @@ class Start
 			trigger_error($e->getMessage());
 		}
 
-		try
+		while($this->running == true)
 		{
-			$this->socket = socket_create(AF_INET, SOCK_STREAM, 0) or die("Could not create socket\n");
-			socket_connect($this->socket, $this->config->network['hostname'], $this->config->network['port']) or die("Could not connect to host: " . $this->config->network['hostname'] . ":" . $this->config->network['port'] . "\n");
-			$this->send("NICK ".$this->config->bot['nickname']);
-			$this->send("USER ".$this->config->bot['username']." ".$this->config->bot['username']." * ".$this->config->bot['realname']);
-			sleep(5);
-			$this->send("JOIN ".implode(",", $this->config->network['channels']));
-		} catch(Exception $e)
-		{
-			trigger_error($e->getMessage());
-			exit();
-		}
-
-		while($data = socket_read($this->socket, 4096))
-		{
-			echo "[IN]\t".$data;
-			$data = str_replace("\r\n", "", $data);
-			// Handle PING
-			if(preg_match("/^PING(.*?)$/i", $data, $m))
+			try
 			{
-				$this->send("PONG".$m[1]);
-				foreach($this->ping_binds as $callback)
-				{
-					$callback();
-				}
+				$this->socket = socket_create(AF_INET, SOCK_STREAM, 0) or die("Could not create socket\n");
+				socket_connect($this->socket, $this->config->network['hostname'], $this->config->network['port']) or die("Could not connect to host: " . $this->config->network['hostname'] . ":" . $this->config->network['port'] . "\n");
+				$this->send("NICK " . $this->config->bot['nickname']);
+				$this->send("USER " . $this->config->bot['username'] . " " . $this->config->bot['username'] . " * " . $this->config->bot['realname']);
+				sleep(5);
+				$this->send("JOIN " . implode(",", $this->config->network['channels']));
+			} catch (Exception $e)
+			{
+				trigger_error($e->getMessage());
+				exit();
 			}
 
-			// handle /names
-			if(preg_match("/:(.*?) 353 (.*?) (.*?) (.*?) :(.*?)/i", $data, $m))
+			while ($data = socket_read($this->socket, 4096))
 			{
-				$this->nicklist[$m[4]]=$m[5];
-			}
-			// Handle PRIVMSG
-			if(preg_match("/^:(.*?)!(.*?)@(.*?) PRIVMSG (.*?) :(.*?)$/i", $data, $m))
-			{
-				$eventObject = new class(){};
-				$eventObject->user = new class(){};
-				$eventObject->user->nickname = $m[1];
-				$eventObject->user->username = $m[2];
-				$eventObject->user->hostname = $m[3];
-				$eventObject->user->mask = $m[1]."!".$m[2]."@".$m[3];
-				$eventObject->target = $m[4];
-				$eventObject->message = $m[5];
-				$args = explode(" ", $m[5]);
-				$eventObject->command = $args[0];
-				array_shift($args);
-				$eventObject->arguments = $args;
-				foreach($this->privmsg_binds as $callback)
+				echo "[IN]\t" . $data;
+				$data = str_replace("\r\n", "", $data);
+				// Handle PING
+				if (preg_match("/^PING(.*?)$/i", $data, $m))
 				{
-					$callback($eventObject);
+					$this->send("PONG" . $m[1]);
+					foreach ($this->ping_binds as $callback)
+					{
+						$callback();
+					}
 				}
-				foreach($this->command_binds as $command => $callback)
+
+				// handle /names
+				if (preg_match("/:(.*?) 353 (.*?) (.*?) (.*?) :(.*?)/i", $data, $m))
 				{
-					if(strtolower($command) == strtolower($eventObject->command))
+					$this->nicklist[$m[4]] = $m[5];
+				}
+				// Handle PRIVMSG
+				if (preg_match("/^:(.*?)!(.*?)@(.*?) PRIVMSG (.*?) :(.*?)$/i", $data, $m))
+				{
+					$eventObject = new class()
+					{
+					};
+					$eventObject->user = new class()
+					{
+					};
+					$eventObject->user->nickname = $m[1];
+					$eventObject->user->username = $m[2];
+					$eventObject->user->hostname = $m[3];
+					$eventObject->user->mask = $m[1] . "!" . $m[2] . "@" . $m[3];
+					$eventObject->target = $m[4];
+					$eventObject->message = $m[5];
+					$args = explode(" ", $m[5]);
+					$eventObject->command = $args[0];
+					array_shift($args);
+					$eventObject->arguments = $args;
+					foreach ($this->privmsg_binds as $callback)
 					{
 						$callback($eventObject);
 					}
+					foreach ($this->command_binds as $command => $callback)
+					{
+						if (strtolower($command) == strtolower($eventObject->command))
+						{
+							$callback($eventObject);
+						}
+					}
 				}
 			}
+			socket_close($this->socket);
 		}
-		socket_close($this->socket);
 	}
 
 	public function send($message)
