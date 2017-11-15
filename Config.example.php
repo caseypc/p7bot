@@ -4,6 +4,9 @@ class Config
 	public $network = array(
 		"hostname"  => "irc.buddy.im",
 		"port"      => 6667,
+		"ssl"       => false,
+		"ssl_cert"  => "ssl/cert",
+		"ssl_key"   => "ssl/key",
 		"channels"  => array(
 			"#lobby"
 		)
