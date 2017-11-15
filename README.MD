@@ -6,6 +6,13 @@ It contains basic plugins such as ping, fml, urban dictionary and spam protectio
 **PULL REQUESTS ARE WELCOME!!**
 
 # Plugin Commands
+## Admin Commands
+**!shutdown** Shuts down the bot
+
+**!join** Joins the bot to a channel. `!join <#channel>`
+
+**!part** Parts the bot from a channel. `!part <#channel>`
+
 ## Ping
 **!ping** Returns pong
 
@@ -13,9 +20,7 @@ It contains basic plugins such as ping, fml, urban dictionary and spam protectio
 **!fml** Returns a random quote from fmylife.com
 
 ## Urban Dictionary
-**!ud** Returns the definition of a given word.
-
-**Usage:** `!ud <word or phrase>`
+**!ud** Returns the definition of a given word. `!ud <word or phrase>`
 
 ## Antispam
 **!spam.score** Returns the current spam rating of the given nick name.
