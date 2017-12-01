@@ -7,6 +7,8 @@ It contains basic plugins such as ping, fml, urban dictionary and spam protectio
 
 # Plugin Commands
 ## Admin Commands
+**!cmds** Lists all commands.
+
 **!shutdown** Shuts down the bot
 
 **!join** Joins the bot to a channel. `!join <#channel>`
