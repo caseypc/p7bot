@@ -1,4 +1,12 @@
 <?php
+$this->bindCmd('cmds',function($event){
+	$cmds = array();
+	foreach ($this->command_binds as $command => $callback)
+	{
+		$cmds[] = $command;
+	}
+	$this->send("PRIVMSG ".$event->target." :Commands: ".implode(', ', $cmds));
+});
 $this->bindCmd("shutdown",function($event){
 	if(!$this->checkAdmin($event->user->mask))
 	{
